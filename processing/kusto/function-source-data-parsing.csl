@@ -1,0 +1,12 @@
+.create-or-alter function with (folder = "", docstring = "", skipvalidation = "true") SourceDataParsing() {
+landing
+    | extend workOrderId = tostring(rawdata['workOrderId'])
+    | extend machineId = tostring(rawdata['machineId'])
+    | mvexpand sensors = rawdata['data'] to typeof(string) limit 2000
+    | extend j = parse_json(sensors)
+    | extend name = tostring(j.name)
+    | extend timestamp = j.timestamp
+    | mvexpand value = j.values to typeof(double), t1 = j["timeDelta"] to typeof(long) limit 2000
+    | extend Timestamp = datetime(1970-01-01) + ((t1 + timestamp) * 1micros)
+    | project Timestamp , SensorName = name , Value = value, WorkOrderId = workOrderId, MachineId = machineId
+}

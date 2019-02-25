@@ -1,57 +1,54 @@
-# Project Name
+# High-scale Data Ingestion and Analysis with Azure Data Explorer
 
-(short, 1-3 sentenced, description of the project)
+## Introduction
 
-## Features
+Azure Data Explorer (ADX) is a fast and highly scalable data exploration service for telemetry data.
+This sample illustrates how to use ADX capabilities in an IoT scenario to transform and store time series in high velocity and volume.
+As can be seen in the diagram below, the devices in our factory send out data into an Azure Eventhubs which is later stored in ADX. The final step is where we're using Grafana and other query tools to analyze the information we got.
 
-This project framework provides the following features:
+![Flow](media/HighLevelDiagram.jpg)
 
-* Feature 1
-* Feature 2
-* ...
+The following sections follow the process outlined above, where each includes information and steps needed to have a full working scenario.
 
-## Getting Started
+## Run the Sample
 
 ### Prerequisites
 
-(ideally very short, if any)
+1. Access to an Azure account. If you do not have one, follow [this](https://azure.microsoft.com/en-gb/free/) to setup a free account.
+1. [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+1. Optional: Python and the [ADX library for Python](https://github.com/Azure/azure-kusto-python)
 
-- OS
-- Library version
-- ...
+### Clone this repository
 
-### Installation
+From your shell or command line run the following:
 
-(ideally very short)
+```bash
+git clone https://github.com/Azure-Samples/kusto-high-scale-ingestion.git
+```
 
-- npm install [package name]
-- mvn install
-- ...
+### Environment Setup
 
-### Quickstart
-(Add steps to get up and running quickly)
+The [Setup Environment](environment-setup/README.md) section will guide you to provision and configure Azure resources used on this sample.
 
-1. git clone [repository clone url]
-2. cd [respository name]
-3. ...
+### Generate Data
 
+To simulate a manufacturing factory devices sending out metrics data, we used pepper-box - a kafka load generator plugin for jmeter.
+This repository contains a modified implementation of pepper-box, supporting Kafka version 1.0 and later. It will send out json messages to Azure Event Hub for Kafka.
 
-## Demo
+Read more on [Data Generator](data-generator/README.md)
 
-A demo app is included to show how to use the project.
+### Transform and Store
 
-To run the demo, follow these steps:
+Azure Data Explorer offers different ways to ingest data into the service. In this sample, we will ingest data directly from an Eventhubs, and transform it by using an Update Policy.
 
-(Add steps to start up the demo)
+Read more on [Processing](processing/README.md)
 
-1.
-2.
-3.
+### Analyze and Visualize
 
-## Resources
+After collecting, transforming and storing the data, the next step is to visualize queries on top of the data. This sample uses Grafana.
 
-(Any additional resources or related projects)
+Read more on [Analysis and Visualization](analyze/README.md)
 
-- Link to supporting information
-- Link to similar sample
-- ...
+## Cleanup
+
+If you don't plan on using resources created for this sample like the Azure Data Explorer cluster you should delete them to avoid un-necessary charges. An easy way to do this would be to delete the resource group you created on the _Initial Environment Setup_ section.

@@ -1,0 +1,161 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "defaultValue": "West Europe",
+            "type": "string"
+        },
+        "kusto_cluster_name": {
+            "defaultValue": "abcanalytics",
+            "type": "string"
+        },
+        "kusto_cluster_sku_name": {
+            "defaultValue": "D13_v2",
+            "allowedValues": ["D13_v2", "D14_v2", "L8", "L16"],
+            "type": "string"
+        },
+        "kusto_cluster_sku_capacity": {
+            "defaultValue": 2,
+            "minValue": 2,
+            "maxValue": 20,
+            "type": "int"
+        },
+        "kusto_database_name": {
+            "defaultValue": "mydb",
+            "type": "string"
+        },
+        "eventhubs_namespace_name": {
+            "defaultValue": "abcevents",
+            "type": "string"
+        },
+        "eventhubs_namespace_capacity": {
+            "defaultValue": 20,
+            "minValue": 1,
+            "maxValue": 20,
+            "type": "int"
+        },
+        "eventhubs_hub_name": {
+            "defaultValue": "rawinput",
+            "type": "string"
+        },
+        "eventhubs_hub_partition_count": {
+            "defaultValue": 20,
+            "minValue": 2,
+            "maxValue": 32,
+            "type": "int"
+        },
+        "eventhubs_authrules_root_name": {
+            "defaultValue": "RootManageSharedAccessKey",
+            "type": "string"
+        },
+        "eventhubs_authrules_hub_listen_name": {
+            "defaultValue": "listen",
+            "type": "string"
+        }
+    },
+    "variables": {
+        "eventhubs_namespace_hub_path": "[concat(parameters('eventhubs_namespace_name'), '/', parameters('eventhubs_hub_name'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Kusto/clusters",
+            "sku": {
+                "name": "[parameters('kusto_cluster_sku_name')]",
+                "tier": "Standard",
+                "capacity": "[parameters('kusto_cluster_sku_capacity')]"
+            },
+            "name": "[parameters('kusto_cluster_name')]",
+            "apiVersion": "2018-09-07-preview",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Kusto/clusters/databases",
+            "name": "[concat(parameters('kusto_cluster_name'), '/', parameters('kusto_database_name'))]",
+            "apiVersion": "2018-09-07-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+                "softDeletePeriodInDays": 365
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Kusto/Clusters', parameters('kusto_cluster_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": "[parameters('eventhubs_namespace_capacity')]"
+            },
+            "name": "[parameters('eventhubs_namespace_name')]",
+            "apiVersion": "2018-01-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "properties": {
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0,
+                "kafkaEnabled": true
+            },
+            "dependsOn": []
+        },        
+        {
+            "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+            "name": "[concat(parameters('eventhubs_namespace_name'), '/', parameters('eventhubs_authrules_root_name'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('eventhubs_namespace_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "name": "[variables('eventhubs_namespace_hub_path')]",
+            "apiVersion": "2017-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "messageRetentionInDays": 1,
+                "partitionCount": "[parameters('eventhubs_hub_partition_count')]",
+                "status": "Active"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('eventhubs_namespace_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+            "name": "[concat(variables('eventhubs_namespace_hub_path'), '/', parameters('eventhubs_authrules_hub_listen_name'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "rights": [
+                    "Listen"
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('eventhubs_namespace_name'))]",
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventhubs_namespace_name'), parameters('eventhubs_hub_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "name": "[concat(variables('eventhubs_namespace_hub_path'), '/', '$default')]",
+            "apiVersion": "2017-04-01",
+            "location": "[parameters('location')]",
+            "properties": {},
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('eventhubs_namespace_name'))]",
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventhubs_namespace_name'), parameters('eventhubs_hub_name'))]"
+            ]
+        }
+    ]
+}

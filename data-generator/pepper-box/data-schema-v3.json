@@ -1,0 +1,1 @@
+{"workOrderId":"_workOrderIdPlaceholder_","machineId": <machineId>,"data": {{GEN_MANUFACTORING_SENSORS_DATA(<minNumOfSensors>,<maxNumOfSensors>,<minLengthOfValues>,<maxLengthOfValues>}}}

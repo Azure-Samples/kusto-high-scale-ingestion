@@ -1,0 +1,1 @@
+.create-merge table target (Timestamp:datetime, SensorName:string, Value:real, WorkOrderId:string, MachineId:string) 

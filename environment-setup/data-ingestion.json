@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "defaultValue": "West Europe",
+            "type": "string"
+        },
+        "kusto_cluster_name": {
+            "defaultValue": "abcanalytics",
+            "type": "string"
+        },
+        "kusto_database_name": {
+            "defaultValue": "mydb",
+            "type": "string"
+        },
+        "kusto_data_ingestion_name": {
+            "defaultValue": "dataingest1",
+            "type": "string"
+        },
+        "kusto_data_ingestion_table_name": {
+            "defaultValue": "landing",
+            "type": "string"
+        },
+        "kusto_data_ingestion_mapping_name": {
+            "defaultValue": "raw_mapping",
+            "type": "string"
+        },
+        "eventhubs_namespace_name": {
+            "defaultValue": "abcevents",
+            "type": "string"
+        },
+        "eventhubs_hub_name": {
+            "defaultValue": "rawinput",
+            "type": "string"
+        }
+    },
+    "resources": [
+        {  
+            "type":"Microsoft.Kusto/clusters/databases/eventhubconnections",
+            "name":"[concat(parameters('kusto_cluster_name'), '/', parameters('kusto_database_name'), '/', parameters('kusto_data_ingestion_name'))]",
+            "apiVersion":"2018-09-07-preview",
+            "location": "[parameters('location')]",
+            "properties":{  
+                "consumerGroup":"$Default",                
+                "eventHubResourceId":"[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventhubs_namespace_name'), parameters('eventhubs_hub_name'))]",
+                "tableName":"[parameters('kusto_data_ingestion_table_name')]",
+                "mappingRuleName":"[parameters('kusto_data_ingestion_mapping_name')]",
+                "dataFormat":"JSON"
+            }
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+.alter table target policy update "[{\"IsEnabled\": true,\"Source\": \"ladning\",\"Query\": \"SourceDataParsing()\",\"IsTransactional\": true,\"PropagateIngestionProperties\": false}]"  
